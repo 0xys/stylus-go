@@ -29,6 +29,10 @@ check:
 check/hacky:
 	cargo stylus check --wasm-file-path bin/mainh.wasm
 
+.PHONY: deploy
+deploy:
+	cargo stylus deploy --wasm-file-path bin/mainh.wasm --private-key $(ETH_PRIVATE_KEY)
+
 .PHONY: wasm2wat
 wasm2wat:
 	$(WABT_PATH)/bin/wasm2wat -o outputs/main.wat bin/main.wasm
