@@ -120,6 +120,45 @@ func tx_ink_price() uint32
 //export tx_origin
 func tx_origin(origin *uint8)
 
+type Bytes []uint8
+
+const AddressLen = 20
+
+type Address [AddressLen]uint8
+
+func (a Address) String() string {
+	//return hex.EncodeToString([]byte(a[:]))
+	return "todo"
+}
+
+func GetCalldata(length uint32) Bytes {
+	dest := make([]uint8, length, length)
+	read_args(&dest[0])
+	return Bytes(dest)
+}
+
+func TxOrigin() Address {
+	addr := make([]uint8, AddressLen, AddressLen)
+	tx_origin(&addr[0])
+	return Address(addr)
+}
+
+func MsgSender() Address {
+	addr := make([]uint8, AddressLen, AddressLen)
+	msg_sender(&addr[0])
+	return Address(addr)
+}
+
+func Log(msg string) {
+	LogN(msg, 0)
+}
+
+func LogN(msg string, topics uint32) {
+	bytes := []byte(msg)
+	length := len(bytes)
+	emit_log(&bytes[0], uint32(length), topics)
+}
+
 //export user_entrypoint
 func user_entrypoint(args_len uint32) uint32 {
 	addr := []uint8{0}
@@ -128,6 +167,10 @@ func user_entrypoint(args_len uint32) uint32 {
 	ll := []uint32{0}
 	account_balance(&addr[0], &dest[0])
 	account_codehash(&addr[0], &dest[0])
+
+	GetCalldata(args_len)
+	TxOrigin()
+	Log("hello world")
 
 	storage_load_bytes32(&addr[0], &dest[0])
 	storage_store_bytes32(&addr[0], &dest[0])
