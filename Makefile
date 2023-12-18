@@ -14,8 +14,8 @@ build:
 build/hacky:
 	tinygo build -o outputs/mainh_tmp1.wasm -gc leaking -scheduler none -target stylus.json --no-debug ./main.go
 	$(WABT_PATH)/bin/wasm2wat -o outputs/mainh_tmp2.wat outputs/mainh_tmp1.wasm
-	# ./rm_wasi.sh
-	# $(WABT_PATH)/bin/wat2wasm -o bin/mainh.wasm outputs/mainh_tmp3.wat
+	./rm_wasi.sh
+	$(WABT_PATH)/bin/wat2wasm -o bin/mainh.wasm outputs/mainh_tmp3.wat
 
 .PHONY: wat2wasm
 wat2wasm:

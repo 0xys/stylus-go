@@ -50,10 +50,10 @@ func memory_grow(pages uint16)
 
 //export user_entrypoint
 func user_entrypoint(args_len uint32) uint32 {
-	addr := []uint8{}
-	dest := []uint8{}
-	val := []uint8{}
-	ll := []uint32{}
+	addr := []uint8{0}
+	dest := []uint8{0}
+	val := []uint8{0}
+	ll := []uint32{0}
 	account_balance(&addr[0], &dest[0])
 	account_codehash(&addr[0], &dest[0])
 	storage_load_bytes32(&addr[0], &dest[0])
