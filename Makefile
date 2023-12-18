@@ -12,16 +12,21 @@ build:
 
 .PHONY: build/hacky
 build/hacky:
-	tinygo build -o bin/mainh_tmp.wasm -gc leaking -scheduler none -target stylus.json --no-debug ./main.go
-	$(WABT_PATH)/bin/wasm2wat -o outputs/mainh.wat bin/mainh_tmp.wasm
+	tinygo build -o outputs/mainh_tmp1.wasm -gc leaking -scheduler none -target stylus.json --no-debug ./main.go
+	$(WABT_PATH)/bin/wasm2wat -o outputs/mainh_tmp2.wat outputs/mainh_tmp1.wasm
+	./rm_wasi.sh
+	$(WABT_PATH)/bin/wat2wasm -o bin/mainh.wasm outputs/mainh_tmp3.wat
+
+.PHONY: wat2wasm
+wat2wasm:
 	$(WABT_PATH)/bin/wat2wasm -o bin/mainh.wasm outputs/mainh.wat
-	
+
 .PHONY: check
 check:
 	cargo stylus check --wasm-file-path bin/main.wasm
 
-.PHONY: check/h
-check/h:
+.PHONY: check/hacky
+check/hacky:
 	cargo stylus check --wasm-file-path bin/mainh.wasm
 
 .PHONY: wasm2wat
