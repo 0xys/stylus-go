@@ -41,6 +41,10 @@ objdump/x:
 objdump:
 	$(WABT_PATH)/bin/wasm-objdump bin/main.wasm -h
 
+.PHONY: objdump/import
+objdump/import:
+	$(WABT_PATH)/bin/wasm-objdump --section Import -x bin/mainh.wasm
+
 .PHONY: opt
 opt:
 	wasm-opt
