@@ -24,12 +24,25 @@ const call = async (provider) => {
     return returnData;
 }
 
+
 (async () => {
     const privateKey = process.env.ETH_PRIVATE_KEY;
-    const destAddr = '0xE078Cdb3356D1151d30C1a2F3e2F22F2eFB0b011'
+    const nodeType = process.env.NODETYPE;
+    let url = 'http://localhost:8547';
+    if (nodeType == 'remote') {
+        url = 'https://stylus-testnet.arbitrum.io/rpc'
+    }
+    const destAddr = proocess.argv[2];
+    if (!destAddr) {
+        console.log('no destination address');
+        return;
+    }
     
-    const provider = new ethers.JsonRpcProvider(`https://stylus-testnet.arbitrum.io/rpc`);
-    const wallet = new ethers.Wallet(privateKey, provider)
+    const provider = new ethers.JsonRpcProvider(url);
+    const wallet = new ethers.Wallet(privateKey, provider);
+    const balanceInWei = await provider.getBalance(addr);
+    const balanceInEther = ethers.formatEther(balanceInWei);
+    console.log(`Your account balance is: ${balanceInEther} ETH`);
 
     // const a = ethers.concat([
     //     funcSignature('transfer(address,uint256)'), 
@@ -40,16 +53,10 @@ const call = async (provider) => {
         to: destAddr,
         gasPrice: ethers.parseUnits('100', 'mwei'),
         gasLimit: 2000000,
-        data: '0xa4b000000000000000000073657175656e636572'
+        data: '0xa4b000000000000000000073657175656e636572a4b000000000000000000073657175656e636572'
     };
 
     const res = await wallet.sendTransaction(tx);
-    console.log(res.hash);
     console.log(res);
-    // const balanceInWei = await provider.getBalance(addr);
-
-    // // Convert the balance to a more readable format (Ether)
-    // const balanceInEther = ethers.formatEther(balanceInWei);
-    // // Print the balance
-    // console.log(`Your account balance is: ${balanceInEther} ETH`);
+    console.log(res.hash);
 })()

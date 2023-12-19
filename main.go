@@ -191,8 +191,11 @@ func Encode(dst, src []byte) int {
 	return len(src) * 2
 }
 
-func GetCalldata(length uint32) Bytes {
-	dest := make([]uint8, length, length)
+// must be initialized in entrypoint
+var calldataLen uint32
+
+func GetCalldata() Bytes {
+	dest := make([]uint8, calldataLen, calldataLen)
 	read_args(&dest[0])
 	return Bytes(dest)
 }
@@ -216,6 +219,18 @@ func Log(msg string) {
 func LogN(msg string, topics uint32) {
 	bytes := []byte(msg)
 	LogRawN(bytes, topics)
+}
+func LogUInt8(n uint8, topics uint32) {
+	bytes := []byte{n}
+	LogRawN(bytes, topics)
+}
+func LogUInt32(n uint32, topics uint32) {
+	b := []byte{0, 0, 0, 0}
+	b[0] = byte(n >> 24)
+	b[1] = byte(n >> 16)
+	b[2] = byte(n >> 8)
+	b[3] = byte(n)
+	LogRawN(b, topics)
 }
 func LogRawN(bytes Bytes, topics uint32) {
 	length := len(bytes)
@@ -262,69 +277,70 @@ func SLoad(key Bytes) Bytes {
 
 //export user_entrypoint
 func user_entrypoint(args_len uint32) uint32 {
-	Log("hello")
+	calldataLen = args_len
+	LogUInt32(args_len, 0)
 	Log(TxOrigin().String())
-	calldata := GetCalldata(20)
-
-	addr := Address(calldata)
-	LogRawN(addr[:], 2)
-
-	LogRawN(addr.Balance(), 3)
-	LogRawN(MsgSender().Balance(), 3)
-
-	ReturnUInt64(BlockNumber())
-
+	calldata := GetCalldata()
+	LogRawN(calldata, 1)
 	/*
-		addr := []uint8{0}
-		dest := []uint8{0}
-		val := []uint8{0}
-		ll := []uint32{0}
-		account_balance(&addr[0], &dest[0])
-		account_codehash(&addr[0], &dest[0])
+			addr := Address(calldata[:20])
+			LogRawN(addr[:], 2)
 
-		GetCalldata(args_len)
-		TxOrigin()
-		Log("hello world")
+			LogRawN(addr.Balance(), 3)
+			LogRawN(MsgSender().Balance(), 3)
 
-		storage_load_bytes32(&addr[0], &dest[0])
-		storage_store_bytes32(&addr[0], &dest[0])
+			ReturnUInt64(BlockNumber())
+		/*
+			addr := []uint8{0}
+			dest := []uint8{0}
+			val := []uint8{0}
+			ll := []uint32{0}
+			account_balance(&addr[0], &dest[0])
+			account_codehash(&addr[0], &dest[0])
 
-		block_basefee(&val[0])
+			GetCalldata(args_len)
+			TxOrigin()
+			Log("hello world")
 
-		chainid()
+			storage_load_bytes32(&addr[0], &dest[0])
+			storage_store_bytes32(&addr[0], &dest[0])
 
-		block_coinbase(&addr[0])
-		block_gas_limit()
-		block_number()
-		block_timestamp()
+			block_basefee(&val[0])
 
-		call_contract(&addr[0], &dest[0], uint32(10), &val[0], uint64(11), &ll[0])
-		contract_address(&addr[0])
-		create1(&val[0], uint32(10), &addr[0], &addr[0], &ll[0])
-		create2(&val[0], uint32(10), &addr[0], &val[0], &addr[0], &ll[0])
-		delegate_call_contract(&addr[0], &dest[0], uint32(10), uint64(11), &ll[0])
+			chainid()
+
+			block_coinbase(&addr[0])
+			block_gas_limit()
+			block_number()
+			block_timestamp()
+
+			call_contract(&addr[0], &dest[0], uint32(10), &val[0], uint64(11), &ll[0])
+			contract_address(&addr[0])
+			create1(&val[0], uint32(10), &addr[0], &addr[0], &ll[0])
+			create2(&val[0], uint32(10), &addr[0], &val[0], &addr[0], &ll[0])
+			delegate_call_contract(&addr[0], &dest[0], uint32(10), uint64(11), &ll[0])
 
 
-		emit_log(&val[0], uint32(10), uint32(11))
+			emit_log(&val[0], uint32(10), uint32(11))
 
-		evm_gas_left()
-		evm_ink_left()
+			evm_gas_left()
+			evm_ink_left()
 
-		memory_grow(0)
+			memory_grow(0)
 
-		msg_sender(&addr[0])
-		msg_value(&val[0])
+			msg_sender(&addr[0])
+			msg_value(&val[0])
 
-		native_keccak256(&addr[0], uint32(10), &dest[0])
+			native_keccak256(&addr[0], uint32(10), &dest[0])
 
-		read_args(&val[0])
-		read_return_data(&dest[0], uint32(10), uint32(32))
-		write_result(&dest[0], uint32(10))
-		return_data_size()
-		static_call_contract(&addr[0], &dest[0], uint32(10), uint64(11), &ll[0])
-		tx_gas_price(&val[0])
-		tx_ink_price()
-		tx_origin(&addr[0])
+			read_args(&val[0])
+			read_return_data(&dest[0], uint32(10), uint32(32))
+			write_result(&dest[0], uint32(10))
+			return_data_size()
+			static_call_contract(&addr[0], &dest[0], uint32(10), uint64(11), &ll[0])
+			tx_gas_price(&val[0])
+			tx_ink_price()
+			tx_origin(&addr[0])
 	*/
 	return 0
 }

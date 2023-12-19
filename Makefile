@@ -33,6 +33,10 @@ check/hacky:
 deploy:
 	cargo stylus deploy --wasm-file-path bin/mainh.wasm --private-key $(ETH_PRIVATE_KEY)
 
+.PHONY: deploy/local
+deploy/local:
+	cargo stylus deploy --endpoint http://localhost:8547 --wasm-file-path bin/mainh.wasm --private-key $(ETH_PRIVATE_KEY)
+
 .PHONY: wasm2wat
 wasm2wat:
 	$(WABT_PATH)/bin/wasm2wat -o outputs/main.wat bin/main.wasm
