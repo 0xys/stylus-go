@@ -1,5 +1,7 @@
 package main
 
+import "math/bits"
+
 //go:wasm-module vm_hooks
 //export account_balance
 func account_balance(addr *uint8, dest *uint8)
@@ -211,6 +213,11 @@ func MsgSender() Address {
 	msg_sender(&addr[0])
 	return Address(addr)
 }
+func MsgValue() U256 {
+	w := [32]uint8{0}
+	msg_value(&w[0])
+	return FromWord(w)
+}
 
 func Log(msg string) {
 	LogN(msg, 0)
@@ -236,6 +243,10 @@ func LogRawN(bytes Bytes, topics uint32) {
 	length := len(bytes)
 	emit_log(&bytes[0], uint32(length), topics)
 }
+func LogU256(v U256) {
+	w := v.Word()
+	emit_log(&w[0], uint32(32), 0)
+}
 
 func ReturnBytes(bytes Bytes) {
 	write_result(&bytes[0], uint32(len(bytes)))
@@ -248,9 +259,8 @@ func ReturnString(msg string) {
 	ReturnBytes([]byte(msg))
 }
 
-// big-endian
-func ReturnUInt64(v uint64) {
-	b := make([]uint8, 8, 8)
+func uint64ToBytes(v uint64) [8]uint8 {
+	b := [8]uint8{0, 0, 0, 0, 0, 0, 0, 0}
 	b[0] = byte(v >> 56)
 	b[1] = byte(v >> 48)
 	b[2] = byte(v >> 40)
@@ -259,7 +269,22 @@ func ReturnUInt64(v uint64) {
 	b[5] = byte(v >> 16)
 	b[6] = byte(v >> 8)
 	b[7] = byte(v)
-	ReturnBytes(b)
+	return b
+}
+
+// big-endian
+func bytesToUint64(b []uint8) uint64 {
+	ret := uint64(0)
+	for i := 0; i < 8; i++ {
+		ret = ret + (uint64(b[i]) << (8 * (7 - i)))
+	}
+	return ret
+}
+
+// big-endian
+func ReturnUInt64(v uint64) {
+	b := uint64ToBytes(v)
+	ReturnBytes(b[:])
 }
 
 func ReturnAddress(addr Address) {
@@ -273,6 +298,48 @@ func SLoad(key Bytes) Bytes {
 	ret := make([]uint8, 32, 32)
 	storage_load_bytes32(&key[0], &ret[0])
 	return ret
+}
+
+type Word [32]uint8
+
+type U256 [4]uint64
+
+func NewU256() U256 {
+	return [4]uint64{0, 0, 0, 0}
+}
+
+func FromUInt64(v uint64) U256 {
+	return [4]uint64{v, 0, 0, 0}
+}
+func FromWord(w Word) U256 {
+	ret := NewU256()
+	ret[0] = bytesToUint64(w[24:32])
+	ret[1] = bytesToUint64(w[16:24])
+	ret[2] = bytesToUint64(w[8:16])
+	ret[3] = bytesToUint64(w[:8])
+	return ret
+}
+
+func (z *U256) Add(x, y *U256) *U256 {
+	var carry uint64
+	z[0], carry = bits.Add64(x[0], y[0], 0)
+	z[1], carry = bits.Add64(x[1], y[1], carry)
+	z[2], carry = bits.Add64(x[2], y[2], carry)
+	z[3], _ = bits.Add64(x[3], y[3], carry)
+	return z
+}
+
+func (z *U256) Word() Word {
+	dst := [32]uint8{0}
+	b1 := uint64ToBytes(z[0])
+	b2 := uint64ToBytes(z[1])
+	b3 := uint64ToBytes(z[2])
+	b4 := uint64ToBytes(z[3])
+	copy(dst[:8], b4[:8])
+	copy(dst[8:16], b3[:8])
+	copy(dst[16:24], b2[:8])
+	copy(dst[24:32], b1[:8])
+	return dst
 }
 
 //export user_entrypoint
@@ -289,7 +356,20 @@ func user_entrypoint(args_len uint32) uint32 {
 	LogRawN(addr.Balance(), 0)
 	LogRawN(MsgSender().Balance(), 0)
 
+	val := MsgValue()
+	LogU256(val)
+
+	bn := FromUInt64(BlockNumber())
+	LogU256(bn)
+
+	bs := FromUInt64(BlockTimestamp())
+	LogU256(bs)
+
+	sum := NewU256()
+	LogU256(*sum.Add(&bn, &bs))
+
 	ReturnUInt64(BlockNumber())
+
 	/*
 		addr := []uint8{0}
 		dest := []uint8{0}
@@ -348,4 +428,5 @@ func user_entrypoint(args_len uint32) uint32 {
 func main() {
 	memory_grow(0)
 	user_entrypoint(1)
+
 }

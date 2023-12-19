@@ -53,9 +53,15 @@ const call = async (provider) => {
     gasPrice: ethers.parseUnits('100', 'mwei'),
     gasLimit: 2000000,
     data: '0xa4b000000000000000000073657175656e636572a4b000000000000000000073657175656e636572',
+    value: '1111',
   };
 
   const res = await wallet.sendTransaction(tx);
   console.log(res);
   console.log(res.hash);
+  const txReceipt = await provider.waitForTransaction(
+      res.hash,
+  );
+
+  console.log(txReceipt);
 })();
