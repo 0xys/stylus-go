@@ -2,3 +2,4 @@ bin
 outputs
 .envrc
 .env
+node_modules
