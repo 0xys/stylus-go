@@ -151,6 +151,61 @@ func (a Address) CodeHash() Bytes {
 	return hash
 }
 
+type CallError int
+
+const callerror CallError = 1
+
+func (e CallError) Error() string {
+	return "e"
+}
+
+func (a Address) Call(calldata Bytes, value U256, gas uint64) (Bytes, error) {
+	val := value.Word()
+	retDataLen := uint32(0)
+	status := call_contract(&a[0], &calldata[0], uint32(len(calldata)), &val[0], gas, &retDataLen)
+
+	ret := make([]uint8, retDataLen, retDataLen)
+	read_return_data(&ret[0], 0, retDataLen)
+	if status != 1 {
+		return ret, callerror
+	}
+	return ret, nil
+}
+
+func (a Address) StaticCall(calldata Bytes, gas uint64) (Bytes, error) {
+	retDataLen := uint32(0)
+	status := static_call_contract(&a[0], &calldata[0], uint32(len(calldata)), gas, &retDataLen)
+	ret := make([]uint8, retDataLen, retDataLen)
+	read_return_data(&ret[0], 0, retDataLen)
+	if status != 1 {
+		return ret, callerror
+	}
+	return ret, nil
+}
+
+func (a Address) DelegateCall(calldata Bytes, gas uint64) (Bytes, error) {
+	retDataLen := uint32(0)
+	status := delegate_call_contract(&a[0], &calldata[0], uint32(len(calldata)), gas, &retDataLen)
+	ret := make([]uint8, retDataLen, retDataLen)
+	read_return_data(&ret[0], 0, retDataLen)
+	if status != 1 {
+		return ret, callerror
+	}
+	return ret, nil
+}
+
+// TODO
+func Create1() {
+}
+func Create2() {
+}
+
+func Keccak256(data Bytes) Word {
+	ret := [32]uint8{0}
+	native_keccak256(&data[0], uint32(len(data)), &ret[0])
+	return ret
+}
+
 func BlockBaseFee() Bytes {
 	bal := make([]byte, 32, 32)
 	block_basefee(&bal[0])
@@ -172,6 +227,29 @@ func BlockNumber() uint64 {
 }
 func BlockTimestamp() uint64 {
 	return block_timestamp()
+}
+func GasLeft() uint64 {
+	return evm_gas_left()
+}
+func InkLeft() uint64 {
+	return evm_ink_left()
+}
+func GasPrice() U256 {
+	p := make([]uint8, 32, 32)
+	tx_gas_price(&p[0])
+	return FromBytes(p)
+}
+func InkPrice() uint32 {
+	return tx_ink_price()
+}
+func ReturnDataSize() uint32 {
+	return return_data_size()
+}
+func ReturnData() Bytes {
+	sz := ReturnDataSize()
+	ret := make([]uint8, sz, sz)
+	read_return_data(&ret[0], 0, sz)
+	return ret
 }
 
 // https://go.googlesource.com/go/+/go1.9.2/src/encoding/hex/hex.go
@@ -272,11 +350,19 @@ func uint64ToBytes(v uint64) [8]uint8 {
 	return b
 }
 
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
+}
+
 // big-endian
 func bytesToUint64(b []uint8) uint64 {
 	ret := uint64(0)
-	for i := 0; i < 8; i++ {
-		ret = ret + (uint64(b[i]) << (8 * (7 - i)))
+	lsbIdx := min(len(b), 8) - 1
+	for i := lsbIdx; i >= 0; i-- {
+		ret = ret + (uint64(b[i]) << (8 * (lsbIdx - i)))
 	}
 	return ret
 }
@@ -317,6 +403,41 @@ func FromWord(w Word) U256 {
 	ret[1] = bytesToUint64(w[16:24])
 	ret[2] = bytesToUint64(w[8:16])
 	ret[3] = bytesToUint64(w[:8])
+	return ret
+}
+func FromBytes(b Bytes) U256 {
+	ret := NewU256()
+	l := len(b)
+	if l == 0 {
+		return ret
+	}
+	if l <= 8 {
+		ret[0] = bytesToUint64(b)
+		return ret
+	}
+	if l <= 16 {
+		ret[0] = bytesToUint64(b[l-8 : l])
+		ret[1] = bytesToUint64(b[:l-8])
+		return ret
+	}
+	if l <= 24 {
+		ret[0] = bytesToUint64(b[l-8 : l])
+		ret[1] = bytesToUint64(b[l-16 : l-8])
+		ret[2] = bytesToUint64(b[:l-16])
+		return ret
+	}
+	if l <= 32 {
+		ret[0] = bytesToUint64(b[l-8 : l])
+		ret[1] = bytesToUint64(b[l-16 : l-8])
+		ret[2] = bytesToUint64(b[l-24 : l-16])
+		ret[3] = bytesToUint64(b[:l-24])
+		return ret
+	}
+
+	ret[0] = bytesToUint64(b[24:32])
+	ret[1] = bytesToUint64(b[16:24])
+	ret[2] = bytesToUint64(b[8:16])
+	ret[3] = bytesToUint64(b[:8])
 	return ret
 }
 
