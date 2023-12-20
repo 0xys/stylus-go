@@ -151,6 +151,12 @@ func (a Address) CodeHash() Bytes {
 	return hash
 }
 
+func ContractAddress() Address {
+	ret := [AddressLen]uint8{0}
+	contract_address(&ret[0])
+	return ret
+}
+
 type CallError int
 
 const callerror CallError = 1
@@ -159,10 +165,41 @@ func (e CallError) Error() string {
 	return "e"
 }
 
-func (a Address) Call(calldata Bytes, value U256, gas uint64) (Bytes, error) {
-	val := value.Word()
+type callOpt struct {
+	calldata Bytes
+	value    Bytes
+	gas      uint64
+}
+
+func WithCalldata(calldata Bytes) func(*callOpt) {
+	return func(c *callOpt) {
+		c.calldata = calldata
+	}
+}
+func WithValue(v U256) func(*callOpt) {
+	return func(c *callOpt) {
+		w := v.Word()
+		c.value = w[:]
+	}
+}
+func WithGas(gas uint64) func(*callOpt) {
+	return func(c *callOpt) {
+		c.gas = gas
+	}
+}
+func WithMaxGas() func(*callOpt) {
+	return func(c *callOpt) {
+		c.gas = 18446744073709551615 // uint.max()
+	}
+}
+
+func (a Address) Call(opts ...func(*callOpt)) (Bytes, error) {
+	opt := &callOpt{}
+	for _, o := range opts {
+		o(opt)
+	}
 	retDataLen := uint32(0)
-	status := call_contract(&a[0], &calldata[0], uint32(len(calldata)), &val[0], gas, &retDataLen)
+	status := call_contract(&a[0], &opt.calldata[0], uint32(len(opt.calldata)), &opt.value[0], opt.gas, &retDataLen)
 
 	ret := make([]uint8, retDataLen, retDataLen)
 	read_return_data(&ret[0], 0, retDataLen)
@@ -172,9 +209,13 @@ func (a Address) Call(calldata Bytes, value U256, gas uint64) (Bytes, error) {
 	return ret, nil
 }
 
-func (a Address) StaticCall(calldata Bytes, gas uint64) (Bytes, error) {
+func (a Address) StaticCall(opts ...func(*callOpt)) (Bytes, error) {
+	opt := &callOpt{}
+	for _, o := range opts {
+		o(opt)
+	}
 	retDataLen := uint32(0)
-	status := static_call_contract(&a[0], &calldata[0], uint32(len(calldata)), gas, &retDataLen)
+	status := static_call_contract(&a[0], &opt.calldata[0], uint32(len(opt.calldata)), opt.gas, &retDataLen)
 	ret := make([]uint8, retDataLen, retDataLen)
 	read_return_data(&ret[0], 0, retDataLen)
 	if status != 1 {
@@ -183,9 +224,13 @@ func (a Address) StaticCall(calldata Bytes, gas uint64) (Bytes, error) {
 	return ret, nil
 }
 
-func (a Address) DelegateCall(calldata Bytes, gas uint64) (Bytes, error) {
+func (a Address) DelegateCall(opts ...func(*callOpt)) (Bytes, error) {
+	opt := &callOpt{}
+	for _, o := range opts {
+		o(opt)
+	}
 	retDataLen := uint32(0)
-	status := delegate_call_contract(&a[0], &calldata[0], uint32(len(calldata)), gas, &retDataLen)
+	status := delegate_call_contract(&a[0], &opt.calldata[0], uint32(len(opt.calldata)), opt.gas, &retDataLen)
 	ret := make([]uint8, retDataLen, retDataLen)
 	read_return_data(&ret[0], 0, retDataLen)
 	if status != 1 {
