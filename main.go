@@ -130,6 +130,14 @@ func (b Bytes) String() string {
 	return string(dst)
 }
 
+func Concat(items ...Bytes) Bytes {
+	ret := make([]uint8, 0, 1024)
+	for _, item := range items {
+		ret = append(ret, item...)
+	}
+	return ret
+}
+
 const AddressLen = 20
 
 type Address [AddressLen]uint8
@@ -157,12 +165,16 @@ func ContractAddress() Address {
 	return ret
 }
 
-type CallError int
+type EvmError string
 
-const callerror CallError = 1
+const callerror EvmError = "e"
 
-func (e CallError) Error() string {
-	return "e"
+func NewEvmError(e string) EvmError {
+	return EvmError(e)
+}
+
+func (e EvmError) Error() string {
+	return string(e)
 }
 
 type callOpt struct {
@@ -243,6 +255,39 @@ func (a Address) DelegateCall(opts ...func(*callOpt)) (Bytes, error) {
 func Create1() {
 }
 func Create2() {
+}
+
+// auto generate from ABI vvvv
+/**
+name: SomeContract
+methods:
+	uint256 transfer(address, uint)
+
+*/
+type SomeContract struct {
+	addr Address
+}
+
+func NewSomeContract(addr Address) *SomeContract {
+	return &SomeContract{addr}
+}
+
+func (c *SomeContract) Transfer(addr Address, val U256) (U256, error) {
+	tag := []uint8{0x01, 0x02, 0x01, 0x02, 0x01, 0x02, 0x01, 0x02}
+	arg1 := addr.Encode()
+	arg2 := val.Encode()
+	res, err := c.addr.Call(WithCalldata(Concat(tag, arg1, arg2)), WithMaxGas())
+	ret := FromBytes(res)
+	return ret, err
+}
+
+// auto generate ^^^^
+
+func Sample() {
+	var usdtAddr Address
+	addr := ContractAddress()
+	usdt := FromAddress(usdtAddr)
+	usdt.Transfer(addr, FromUInt64(100))
 }
 
 func Keccak256(data Bytes) Word {
