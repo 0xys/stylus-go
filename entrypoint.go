@@ -16,6 +16,7 @@ func user_entrypoint() {
 	sel := asgo.ToSelector(cd[:4])
 	switch sel {
 	case uint32(0xc49c36c):
+		asgo.SetPure()
 		err := cont.SayHi()
 		if err != nil {
 			asgo.SetReturnString(err.Error())
@@ -33,6 +34,14 @@ func user_entrypoint() {
 		if err != nil {
 			asgo.SetReturnString(err.Error())
 		}
+	case uint32(0xb69ef8a8):
+		asgo.SetView()
+		ret, err := cont.Balance()
+		if err != nil {
+			asgo.SetReturnString(err.Error())
+			return
+		}
+		asgo.SetReturnBytes(ret.EncodeToBytes())
 	case uint32(0x23b872dd):
 		ret, err := cont.TransferFrom(asgo.DecodeAddress(cd[4:36]), asgo.DecodeU256(cd[36:68]))
 		if err != nil {

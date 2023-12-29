@@ -26,7 +26,7 @@ type FooContract struct {
 	balances map[Address]U256
 }
 
-// abi: sayHi()
+// abi: sayHi() pure
 func (c *FooContract) SayHi() error {
 }
 
@@ -36,6 +36,10 @@ func (c *FooContract) Transfer(to Address, v U256) error {
 
 // abi: receive(uint64) payable
 func (c *FooContract) Receive(a uint64) error {
+}
+
+// abi: balance() view
+func (c *FooContract) Balance() (U256, error) {
 }
 
 // abi: transferFrom(address,address,uint256) returns (bool)

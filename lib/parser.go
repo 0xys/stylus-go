@@ -41,6 +41,15 @@ func (f *FuncMetadata) IsPure() bool {
 	return false
 }
 
+func (f *FuncMetadata) IsView() bool {
+	for _, m := range f.Modifiers {
+		if m == View {
+			return true
+		}
+	}
+	return false
+}
+
 func NewFuncMetadata(comment string) (*FuncMetadata, error) {
 	ss := strings.Split(comment, ABIDirective)
 	if len(ss) < 2 {
@@ -61,6 +70,10 @@ func NewFuncMetadata(comment string) (*FuncMetadata, error) {
 		switch w {
 		case "payable":
 			ret.Modifiers = append(ret.Modifiers, Payable)
+		case "view":
+			ret.Modifiers = append(ret.Modifiers, View)
+		case "pure":
+			ret.Modifiers = append(ret.Modifiers, Pure)
 		}
 	}
 	return ret, nil
@@ -101,6 +114,7 @@ type Modifier int
 const (
 	Payable Modifier = 1
 	Pure    Modifier = 2
+	View    Modifier = 3
 )
 
 type Contract struct {

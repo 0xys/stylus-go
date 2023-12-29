@@ -23,6 +23,13 @@ func GenContract(cont *Contract, out *os.File) error {
 		if f.IsPayable() {
 			callFuncCodes = append(callFuncCodes, If(Op("!").Qual("asgo", "GetMsgValue()").Dot("IsZero").Call()).Block(Return()))
 		}
+		if f.IsPure() {
+			callFuncCodes = append(callFuncCodes, Qual("asgo", "SetPure").Call())
+		}
+		if f.IsView() {
+			callFuncCodes = append(callFuncCodes, Qual("asgo", "SetView").Call())
+		}
+
 		if len(f.Returns) > 1 {
 			callFuncCodes = append(callFuncCodes, List(Id("ret"), Err()).Op(":=").Id("cont").Dot(f.Name).Call(params...))
 			callFuncCodes = append(callFuncCodes, If(Err().Op("!=").Nil()).Block(Qual("asgo", "SetReturnString").Call(Id("err").Dot("Error").Call()), Return()))
