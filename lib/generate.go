@@ -20,7 +20,7 @@ func GenContract(cont *Contract, out *os.File) error {
 		}
 
 		var callFuncCodes []Code
-		if f.IsPayable() {
+		if !f.IsPayable() {
 			callFuncCodes = append(callFuncCodes, If(Op("!").Qual("asgo", "GetMsgValue()").Dot("IsZero").Call()).Block(Return()))
 		}
 		if f.IsPure() {

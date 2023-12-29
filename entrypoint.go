@@ -20,25 +20,31 @@ func user_entrypoint() {
 	sel := asgo.ToSelector(cd[:4])
 	switch sel {
 	case uint32(0xc49c36c):
+		if !asgo.GetMsgValue().IsZero() {
+			return
+		}
 		asgo.SetPure()
 		err := cont.SayHi()
 		if err != nil {
 			asgo.SetReturnString(err.Error())
 		}
 	case uint32(0xa9059cbb):
+		if !asgo.GetMsgValue().IsZero() {
+			return
+		}
 		err := cont.Transfer(asgo.DecodeAddress(cd[4:36]), asgo.DecodeU256(cd[36:68]))
 		if err != nil {
 			asgo.SetReturnString(err.Error())
 		}
 	case uint32(0x5cdf6ad2):
-		if !asgo.GetMsgValue().IsZero() {
-			return
-		}
 		err := cont.Receive(asgo.Decodeuint64(cd[4:36]))
 		if err != nil {
 			asgo.SetReturnString(err.Error())
 		}
 	case uint32(0xb69ef8a8):
+		if !asgo.GetMsgValue().IsZero() {
+			return
+		}
 		asgo.SetView()
 		ret, err := cont.Balance()
 		if err != nil {
@@ -47,6 +53,9 @@ func user_entrypoint() {
 		}
 		asgo.SetReturnBytes(ret.EncodeToBytes())
 	case uint32(0x23b872dd):
+		if !asgo.GetMsgValue().IsZero() {
+			return
+		}
 		ret, err := cont.TransferFrom(asgo.DecodeAddress(cd[4:36]), asgo.DecodeU256(cd[36:68]))
 		if err != nil {
 			asgo.SetReturnString(err.Error())
