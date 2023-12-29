@@ -23,6 +23,24 @@ type FuncMetadata struct {
 	Modifiers []Modifier
 }
 
+func (f *FuncMetadata) IsPayable() bool {
+	for _, m := range f.Modifiers {
+		if m == Payable {
+			return true
+		}
+	}
+	return false
+}
+
+func (f *FuncMetadata) IsPure() bool {
+	for _, m := range f.Modifiers {
+		if m == Pure {
+			return true
+		}
+	}
+	return false
+}
+
 func NewFuncMetadata(comment string) (*FuncMetadata, error) {
 	ss := strings.Split(comment, ABIDirective)
 	if len(ss) < 2 {

@@ -540,6 +540,10 @@ func FromBytes(b Bytes) U256 {
 	return ret
 }
 
+func (z *U256) IsZero() bool {
+	return z[0] == uint64(0) && z[1] == uint64(0) && z[2] == uint64(0) && z[3] == uint64(0)
+}
+
 func (z *U256) Add(x, y *U256) *U256 {
 	var carry uint64
 	z[0], carry = bits.Add64(x[0], y[0], 0)
