@@ -21,7 +21,7 @@ func GenContract(cont *Contract, out *os.File) error {
 		var callFuncCodes []Code
 		if len(f.Returns) > 1 {
 			callFuncCodes = append(callFuncCodes, List(Id("ret"), Err()).Op(":=").Id("cont").Dot(f.Name).Call(params...))
-			callFuncCodes = append(callFuncCodes, If(Err().Op("!=").Nil()).Block(Return(Err())))
+			callFuncCodes = append(callFuncCodes, If(Err().Op("!=").Nil()).Block(Qual("asgo", "SetReturnString").Call(Id("err").Dot("Error").Call()), Return()))
 			callFuncCodes = append(callFuncCodes, Qual("asgo", "SetReturnBytes").Call(Id("ret").Dot("EncodeToBytes").Call()))
 		} else {
 			callFuncCodes = append(callFuncCodes, Err().Op(":=").Id("cont").Dot(f.Name).Call(params...))

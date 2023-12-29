@@ -31,7 +31,8 @@ func user_entrypoint() {
 	case uint32(0x23b872dd):
 		ret, err := cont.TransferFrom(asgo.DecodeAddress(cd[4:36]), asgo.DecodeU256(cd[36:68]))
 		if err != nil {
-			return err
+			asgo.SetReturnString(err.Error())
+			return
 		}
 		asgo.SetReturnBytes(ret.EncodeToBytes())
 	}
