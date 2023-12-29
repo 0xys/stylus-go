@@ -7,11 +7,9 @@ import (
 	"go/parser"
 	"go/token"
 	"log"
-	"os"
 	"reflect"
 	"strings"
 
-	"github.com/davecgh/go-spew/spew"
 	"golang.org/x/crypto/sha3"
 )
 
@@ -56,6 +54,17 @@ func (s FuncSelector) Hex() string {
 func (s FuncSelector) Hex0x() string {
 	return "0x" + hex.EncodeToString(s)
 }
+func (s FuncSelector) UInt32() uint32 {
+	return ToSelector(s)
+}
+func ToSelector(in []byte) uint32 {
+	ret := uint32(0)
+	ret += uint32(in[3])
+	ret += uint32(in[2]) << 8
+	ret += uint32(in[1]) << 16
+	ret += uint32(in[0]) << 24
+	return ret
+}
 
 func toSelectorBytes(funcSignature string) FuncSelector {
 	hasher := sha3.NewLegacyKeccak256()
@@ -83,8 +92,9 @@ type Contract struct {
 }
 
 type Function struct {
-	Name   string
-	Params []*Variable
+	Name    string
+	Params  []*Variable
+	Returns []string
 	*FuncMetadata
 }
 
@@ -163,6 +173,11 @@ func parseFunctions(cont *Contract, f *ast.File) error {
 					Type: fmt.Sprintf("%s", param.Type),
 				})
 			}
+			if d.Type.Results != nil {
+				for _, r := range d.Type.Results.List {
+					f.Returns = append(f.Returns, reflect.TypeOf(r.Type).String())
+				}
+			}
 
 			cont.Functions = append(cont.Functions, f)
 		}
@@ -187,37 +202,31 @@ func getFuncMetadata(d *ast.FuncDecl) (*FuncMetadata, error) {
 	return NewFuncMetadata(cmmt)
 }
 
-func ProcessFile(filepath, outfile string) error {
+func ProcessFile(filepath string) (*Contract, error) {
 	fs := token.NewFileSet()
 	f, err := parser.ParseFile(fs, filepath, nil, parser.ParseComments)
 	if err != nil {
 		log.Fatal(err)
 	}
-	out, err := os.Create(outfile)
-	if err != nil {
-		return err
-	}
-	defer func() {
-		out.Close()
-	}()
-	spew.Fdump(out, f)
+	// spew.Fdump(out, f)
 
 	cont, err := parseStructName(f)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if err = parseFunctions(cont, f); err != nil {
-		return err
+		return nil, err
 	}
 
-	fmt.Println(cont.Name)
+	/*fmt.Println(cont.Name)
 	for _, m := range cont.Functions {
 		m.Print()
-	}
-	return nil
+	}*/
+	return cont, nil
 }
 
 func realMain() error {
-	return ProcessFile("templates/main.go", "entrypoint.go")
+	_, err := ProcessFile("templates/main.go")
+	return err
 }

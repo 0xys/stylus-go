@@ -361,6 +361,15 @@ func Encode(dst, src []byte) int {
 	return len(src) * 2
 }
 
+func ToSelector(in []byte) uint32 {
+	ret := uint32(0)
+	ret += uint32(in[3])
+	ret += uint32(in[2]) << 8
+	ret += uint32(in[1]) << 16
+	ret += uint32(in[0]) << 24
+	return ret
+}
+
 // must be initialized in entrypoint
 var calldataLen uint32
 

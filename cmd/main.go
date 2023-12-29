@@ -31,13 +31,24 @@ var rootCmd = &cobra.Command{
 		if len(args) > 1 {
 			return fmt.Errorf("maximum of one argument is accepted")
 		}
+		out, err := os.Create(outpath)
+		if err != nil {
+			return err
+		}
+		defer func() {
+			out.Close()
+		}()
 
-		err = lib.ProcessFile(args[0], outpath)
+		cont, err := lib.ProcessFile(args[0])
 		if err != nil {
 			return err
 		}
 
 		fmt.Printf("toggle: %t\n", t)
+		err = lib.GenContract(cont, out)
+		if err != nil {
+			return err
+		}
 		return nil
 	},
 	Args: cobra.MinimumNArgs(1),
