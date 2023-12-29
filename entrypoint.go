@@ -7,7 +7,11 @@ import (
 	"fmt"
 )
 
+// export user_entrypoint
 func user_entrypoint() {
+	asgo.Init()
+	defer asgo.Flush()
+
 	cont := &FooContract{}
 	cd := asgo.GetCalldata()
 	if len(cd) < 4 {

@@ -44,7 +44,11 @@ func GenContract(cont *Contract, out *os.File) error {
 		)
 		cases = append(cases, c)
 	}
+	file.Comment("export user_entrypoint")
 	file.Func().Id("user_entrypoint").Params().Block(
+		Qual("asgo", "Init").Call(),
+		Defer().Qual("asgo", "Flush").Call(),
+		Line(),
 		Id("cont").Op(":=").Op("&").Id(cont.Name).Block(),
 		Id("cd").Op(":=").Qual("asgo", "GetCalldata").Call(),
 		If(Len(Id("cd")).Op("<").Lit(4)).Block(
