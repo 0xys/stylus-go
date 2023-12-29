@@ -1,4 +1,4 @@
-package main
+package lib
 
 import (
 	"encoding/hex"
@@ -187,13 +187,13 @@ func getFuncMetadata(d *ast.FuncDecl) (*FuncMetadata, error) {
 	return NewFuncMetadata(cmmt)
 }
 
-func realMain() error {
+func ProcessFile(filepath, outfile string) error {
 	fs := token.NewFileSet()
-	f, err := parser.ParseFile(fs, "templates/main.go", nil, parser.ParseComments)
+	f, err := parser.ParseFile(fs, filepath, nil, parser.ParseComments)
 	if err != nil {
 		log.Fatal(err)
 	}
-	out, err := os.Open("out")
+	out, err := os.Create(outfile)
 	if err != nil {
 		return err
 	}
@@ -216,4 +216,8 @@ func realMain() error {
 		m.Print()
 	}
 	return nil
+}
+
+func realMain() error {
+	return ProcessFile("templates/main.go", "entrypoint.go")
 }
