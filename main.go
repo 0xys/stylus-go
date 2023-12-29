@@ -425,15 +425,15 @@ func LogU256(v U256) {
 	emit_log(&w[0], uint32(32), 0)
 }
 
-func ReturnBytes(bytes Bytes) {
+func SetReturnBytes(bytes Bytes) {
 	write_result(&bytes[0], uint32(len(bytes)))
 }
-func ReturnUInt8(val uint8) {
+func SetReturnUInt8(val uint8) {
 	bytes := []uint8{val}
-	ReturnBytes(bytes)
+	SetReturnBytes(bytes)
 }
-func ReturnString(msg string) {
-	ReturnBytes([]byte(msg))
+func SetReturnString(msg string) {
+	SetReturnBytes([]byte(msg))
 }
 
 func uint64ToBytes(v uint64) [8]uint8 {
@@ -469,11 +469,11 @@ func bytesToUint64(b []uint8) uint64 {
 // big-endian
 func ReturnUInt64(v uint64) {
 	b := uint64ToBytes(v)
-	ReturnBytes(b[:])
+	SetReturnBytes(b[:])
 }
 
 func ReturnAddress(addr Address) {
-	ReturnBytes(addr[:])
+	SetReturnBytes(addr[:])
 }
 
 func SStore(key, value Bytes) {

@@ -27,18 +27,18 @@ type FooContract struct {
 }
 
 // abi: sayHi()
-func (c *FooContract) SayHi() {
+func (c *FooContract) SayHi() error {
 }
 
 // abi:  transfer(address,uint256)
-func (c *FooContract) Transfer(to Address, v U256) {
+func (c *FooContract) Transfer(to Address, v U256) error {
 }
 
 // abi: receive(uint64) payable
-func (c *FooContract) Receive(a uint64) {
+func (c *FooContract) Receive(a uint64) error {
 }
 
 // abi: transferFrom(address,address,uint256) returns (bool)
-func (c *FooContract) TransferFrom(from, to Address, v U256) bool {
+func (c *FooContract) TransferFrom(from, to Address, v U256) (bool, error) {
 	return false
 }

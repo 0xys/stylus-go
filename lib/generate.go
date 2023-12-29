@@ -18,16 +18,18 @@ func GenContract(cont *Contract, out *os.File) error {
 			params = append(params, pout)
 		}
 
-		var callFuncCode Code
+		var callFuncCodes []Code
 		if len(f.Returns) > 1 {
-			callFuncCode = List(Id("ret"), Err()).Op(":=").Qual("cont", f.Name).Call(params...)
+			callFuncCodes = append(callFuncCodes, List(Id("ret"), Err()).Op(":=").Id("cont").Dot(f.Name).Call(params...))
+			callFuncCodes = append(callFuncCodes, If(Err().Op("!=").Nil()).Block(Return(Err())))
+			callFuncCodes = append(callFuncCodes, Qual("asgo", "SetReturnBytes").Call(Id("ret").Dot("EncodeToBytes").Call()))
 		} else {
-			callFuncCode = Err().Op(":=").Qual("cont", f.Name).Call(params...)
+			callFuncCodes = append(callFuncCodes, Err().Op(":=").Id("cont").Dot(f.Name).Call(params...))
+			callFuncCodes = append(callFuncCodes, If(Err().Op("!=").Nil()).Block(Qual("asgo", "SetReturnString").Call(Id("err").Dot("Error").Call())))
 		}
 
 		c := Case(Lit(sel)).Block(
-			callFuncCode,
-			If(Err().Op("!=").Nil()).Block(Return(Err())),
+			callFuncCodes...,
 		)
 		cases = append(cases, c)
 	}
