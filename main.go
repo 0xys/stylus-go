@@ -449,6 +449,14 @@ func SetReturnAddress(addr Address) {
 	SetReturnBytes(addr[:])
 }
 
+func Revert(bytes Bytes) {
+	SetReturnBytes(bytes)
+	panic(0)
+}
+func RevertWithString(msg string) {
+	Revert([]byte(msg))
+}
+
 func uint64ToBytes(v uint64) [8]uint8 {
 	b := [8]uint8{0, 0, 0, 0, 0, 0, 0, 0}
 	b[0] = byte(v >> 56)
@@ -479,13 +487,16 @@ func bytesToUint64(b []uint8) uint64 {
 	return ret
 }
 
-func SStore(key, value Bytes) {
-	storage_store_bytes32(&key[0], &value[0])
+func SStore(key, value U256) {
+	k := key.Word()
+	v := value.Word()
+	storage_store_bytes32(&k[0], &v[0])
 }
-func SLoad(key Bytes) Bytes {
+func SLoad(key U256) U256 {
 	ret := make([]uint8, 32, 32)
-	storage_load_bytes32(&key[0], &ret[0])
-	return ret
+	k := key.Word()
+	storage_load_bytes32(&k[0], &ret[0])
+	return FromBytes(ret)
 }
 
 type Word [32]uint8
@@ -574,14 +585,46 @@ func testReturn() uint32 {
 	return 0
 }
 
+const (
+	StoreMarker uint8 = 0x01
+	LoadMarker  uint8 = 0x02
+	Load2Marker uint8 = 0x03 // load with log
+)
+
+func testStorage() uint32 {
+	cd := GetCalldata()
+	defaultKey := 0
+	if len(cd) < 1 {
+		RevertWithString("not enough calldata")
+	}
+	switch cd[0] {
+	case StoreMarker:
+		v := FromBytes(cd[1:])
+		LogU256(v)
+		SStore(FromUInt64(uint64(defaultKey)), v)
+	case LoadMarker:
+		val := SLoad(FromUInt64(uint64(defaultKey)))
+		SetReturnU256(val)
+	case Load2Marker:
+		val := SLoad(FromUInt64(uint64(defaultKey)))
+		LogU256(val)
+		SetReturnU256(val)
+	}
+	return 0
+
+}
 func testCall() uint32 {
+	return 0
+}
+func testPanic() uint32 {
+	Revert([]byte{0, 1, 2, 0x43, 0x88})
 	return 0
 }
 
 //export user_entrypoint
 func user_entrypoint(args_len uint32) uint32 {
 	returnStatus = 0
-	// calldataLen = args_len
+	calldataLen = args_len
 	// LogUInt32(args_len, 0)
 	// Log(TxOrigin().String())
 	// calldata := GetCalldata()
@@ -657,7 +700,7 @@ func user_entrypoint(args_len uint32) uint32 {
 		tx_ink_price()
 		tx_origin(&addr[0])
 	*/
-	return testReturn()
+	return testStorage()
 }
 
 func main() {
