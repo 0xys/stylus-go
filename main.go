@@ -263,7 +263,7 @@ name: SomeContract
 methods:
 	uint256 transfer(address, uint)
 
-*/
+
 type SomeContract struct {
 	addr Address
 }
@@ -289,6 +289,7 @@ func Sample() {
 	usdt := FromAddress(usdtAddr)
 	usdt.Transfer(addr, FromUInt64(100))
 }
+*/
 
 func Keccak256(data Bytes) Word {
 	ret := [32]uint8{0}
@@ -651,6 +652,6 @@ func user_entrypoint(args_len uint32) uint32 {
 
 func main() {
 	memory_grow(0)
-	user_entrypoint(1)
+	user_entrypoint()
 
 }

@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 const ethers = require('ethers');
 
 const addr = '0x1f1aebcA347A03218bEDEe7173D150db1d3c5388';
@@ -6,7 +7,7 @@ const coder = new ethers.AbiCoder();
 /**
  *
  * @param {string} sig e.g. 'transfer(address,uint256)'
- * @return string
+ * @return {string} signature
  */
 const funcSignature = (sig) => {
   return ethers.id(sig).substring(0, 10);
