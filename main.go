@@ -652,6 +652,6 @@ func user_entrypoint(args_len uint32) uint32 {
 
 func main() {
 	memory_grow(0)
-	user_entrypoint()
+	user_entrypoint(1)
 
 }
