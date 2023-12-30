@@ -142,10 +142,23 @@ const AddressLen = 20
 
 type Address [AddressLen]uint8
 
+func AddressFromBytes(bytes Bytes) Address {
+	ret := [AddressLen]uint8{0}
+	rightMostIndex := min(AddressLen, len(bytes)) - 1
+	for i := 0; i <= rightMostIndex; i++ {
+		ret[AddressLen-1-i] = bytes[rightMostIndex-i]
+	}
+	return ret
+}
+
 func (a Address) String() string {
 	dst := make([]byte, EncodedLen(len(a[:])))
 	Encode(dst, a[:])
 	return string(dst)
+}
+
+func (a Address) Bytes() Bytes {
+	return a[:]
 }
 
 func (a Address) Balance() Bytes {
@@ -199,53 +212,72 @@ func WithGas(gas uint64) func(*callOpt) {
 		c.gas = gas
 	}
 }
+
+const uintMax = 18446744073709551615 // uint.max()
 func WithMaxGas() func(*callOpt) {
 	return func(c *callOpt) {
-		c.gas = 18446744073709551615 // uint.max()
+		c.gas = uintMax
 	}
 }
 
 func (a Address) Call(opts ...func(*callOpt)) (Bytes, error) {
-	opt := &callOpt{}
+	zero := Zero()
+	opt := &callOpt{
+		gas:   uintMax,
+		value: zero[:], // value must be filled with zeros. TODO: optimize
+	}
 	for _, o := range opts {
 		o(opt)
 	}
-	retDataLen := uint32(0)
+	var retDataLen uint32
 	status := call_contract(&a[0], &opt.calldata[0], uint32(len(opt.calldata)), &opt.value[0], opt.gas, &retDataLen)
-
 	ret := make([]uint8, retDataLen, retDataLen)
-	read_return_data(&ret[0], 0, retDataLen)
-	if status != 1 {
+	if retDataLen > 0 {
+		read_return_data(&ret[0], 0, retDataLen)
+	}
+	if status != 0 {
 		return ret, callerror
 	}
 	return ret, nil
 }
 
 func (a Address) StaticCall(opts ...func(*callOpt)) (Bytes, error) {
-	opt := &callOpt{}
+	zero := Zero()
+	opt := &callOpt{
+		gas:   uintMax,
+		value: zero[:],
+	}
 	for _, o := range opts {
 		o(opt)
 	}
-	retDataLen := uint32(0)
+	var retDataLen uint32
 	status := static_call_contract(&a[0], &opt.calldata[0], uint32(len(opt.calldata)), opt.gas, &retDataLen)
 	ret := make([]uint8, retDataLen, retDataLen)
-	read_return_data(&ret[0], 0, retDataLen)
-	if status != 1 {
+	if retDataLen > 0 {
+		read_return_data(&ret[0], 0, retDataLen)
+	}
+	if status != 0 {
 		return ret, callerror
 	}
 	return ret, nil
 }
 
 func (a Address) DelegateCall(opts ...func(*callOpt)) (Bytes, error) {
-	opt := &callOpt{}
+	zero := Zero()
+	opt := &callOpt{
+		gas:   uintMax,
+		value: zero[:],
+	}
 	for _, o := range opts {
 		o(opt)
 	}
-	retDataLen := uint32(0)
+	var retDataLen uint32
 	status := delegate_call_contract(&a[0], &opt.calldata[0], uint32(len(opt.calldata)), opt.gas, &retDataLen)
 	ret := make([]uint8, retDataLen, retDataLen)
-	read_return_data(&ret[0], 0, retDataLen)
-	if status != 1 {
+	if retDataLen > 0 {
+		read_return_data(&ret[0], 0, retDataLen)
+	}
+	if status != 0 {
 		return ret, callerror
 	}
 	return ret, nil
@@ -417,6 +449,9 @@ func LogUInt32(n uint32, topics uint32) {
 	b[3] = byte(n)
 	LogRawN(b, topics)
 }
+func LogAddress(addr Address, topics uint32) {
+	LogRawN(addr.Bytes(), topics)
+}
 func LogRawN(bytes Bytes, topics uint32) {
 	length := len(bytes)
 	emit_log(&bytes[0], uint32(length), topics)
@@ -500,6 +535,10 @@ func SLoad(key U256) U256 {
 }
 
 type Word [32]uint8
+
+func Zero() Word {
+	return [32]uint8{0}
+}
 
 type U256 [4]uint64
 
@@ -589,6 +628,10 @@ const (
 	StoreMarker uint8 = 0x01
 	LoadMarker  uint8 = 0x02
 	Load2Marker uint8 = 0x03 // load with log
+
+	CallMarker         uint8 = 0x0a
+	DelegateCallMarker uint8 = 0x0b
+	StaticCallMarker   uint8 = 0x0c
 )
 
 func testStorage() uint32 {
@@ -614,6 +657,43 @@ func testStorage() uint32 {
 
 }
 func testCall() uint32 {
+	cd := GetCalldata()
+	if len(cd) < 1 {
+		RevertWithString("not enough calldata")
+	}
+	addr := AddressFromBytes(cd[1:21])
+	LogUInt8(cd[0], 0)
+	LogAddress(addr, 0)
+
+	switch cd[0] {
+	case CallMarker:
+		res, err := addr.Call(WithCalldata(cd[21:]))
+		if err != nil {
+			Log("fail call")
+			return 0
+		}
+		if len(res) > 0 {
+			LogRawN(res, 0)
+		}
+	case DelegateCallMarker:
+		res, err := addr.DelegateCall(WithCalldata(cd[21:]))
+		if err != nil {
+			Log("fail delegate call")
+			return 0
+		}
+		if len(res) > 0 {
+			LogRawN(res, 0)
+		}
+	case StaticCallMarker:
+		res, err := addr.StaticCall(WithCalldata(cd[21:]))
+		if err != nil {
+			Log("fail static call")
+			return 0
+		}
+		if len(res) > 0 {
+			LogRawN(res, 0)
+		}
+	}
 	return 0
 }
 func testPanic() uint32 {
@@ -700,7 +780,7 @@ func user_entrypoint(args_len uint32) uint32 {
 		tx_ink_price()
 		tx_origin(&addr[0])
 	*/
-	return testStorage()
+	return testCall()
 }
 
 func main() {
