@@ -11,7 +11,7 @@ const ethers = require('ethers');
 
   const provider = new ethers.JsonRpcProvider(url);
   const wallet = new ethers.Wallet(privateKey, provider);
-  const balanceInWei = await provider.getBalance(addr);
+  const balanceInWei = await provider.getBalance(wallet.address);
   const balanceInEther = ethers.formatEther(balanceInWei);
   console.log(`Your account addresss is: ${wallet.address}`);
   console.log(`Your account balance is: ${balanceInEther} ETH`);

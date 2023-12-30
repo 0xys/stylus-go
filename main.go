@@ -426,15 +426,27 @@ func LogU256(v U256) {
 	emit_log(&w[0], uint32(32), 0)
 }
 
+var returnStatus uint32
+
 func SetReturnBytes(bytes Bytes) {
+	write_result(&bytes[0], uint32(len(bytes)))
+}
+func SetReturnU256(z U256) {
+	bytes := z.Word()
 	write_result(&bytes[0], uint32(len(bytes)))
 }
 func SetReturnUInt8(val uint8) {
 	bytes := []uint8{val}
 	SetReturnBytes(bytes)
 }
+func SetReturnUInt64(val uint64) {
+	SetReturnU256(FromUInt64(val))
+}
 func SetReturnString(msg string) {
 	SetReturnBytes([]byte(msg))
+}
+func SetReturnAddress(addr Address) {
+	SetReturnBytes(addr[:])
 }
 
 func uint64ToBytes(v uint64) [8]uint8 {
@@ -465,16 +477,6 @@ func bytesToUint64(b []uint8) uint64 {
 		ret = ret + (uint64(b[i]) << (8 * (lsbIdx - i)))
 	}
 	return ret
-}
-
-// big-endian
-func ReturnUInt64(v uint64) {
-	b := uint64ToBytes(v)
-	SetReturnBytes(b[:])
-}
-
-func ReturnAddress(addr Address) {
-	SetReturnBytes(addr[:])
 }
 
 func SStore(key, value Bytes) {
@@ -567,33 +569,41 @@ func (z *U256) Word() Word {
 	return dst
 }
 
+func testReturn() uint32 {
+	SetReturnBytes([]byte{0x32, 0x64, 0x1})
+	return 0
+}
+
+func testCall() uint32 {
+	return 0
+}
+
 //export user_entrypoint
 func user_entrypoint(args_len uint32) uint32 {
-	calldataLen = args_len
-	LogUInt32(args_len, 0)
-	Log(TxOrigin().String())
-	calldata := GetCalldata()
-	LogRawN(calldata, 0)
+	returnStatus = 0
+	// calldataLen = args_len
+	// LogUInt32(args_len, 0)
+	// Log(TxOrigin().String())
+	// calldata := GetCalldata()
+	// LogRawN(calldata, 0)
 
-	addr := Address(calldata[:20])
-	LogRawN(addr[:], 0)
+	// addr := Address(calldata[:20])
+	// LogRawN(addr[:], 0)
 
-	LogRawN(addr.Balance(), 0)
-	LogRawN(MsgSender().Balance(), 0)
+	// LogRawN(addr.Balance(), 0)
+	// LogRawN(MsgSender().Balance(), 0)
 
-	val := MsgValue()
-	LogU256(val)
+	// val := MsgValue()
+	// LogU256(val)
 
-	bn := FromUInt64(BlockNumber())
-	LogU256(bn)
+	// bn := FromUInt64(BlockNumber())
+	// LogU256(bn)
 
-	bs := FromUInt64(BlockTimestamp())
-	LogU256(bs)
+	// bs := FromUInt64(BlockTimestamp())
+	// LogU256(bs)
 
-	sum := NewU256()
-	LogU256(*sum.Add(&bn, &bs))
-
-	ReturnUInt64(BlockNumber())
+	// sum := NewU256()
+	// LogU256(*sum.Add(&bn, &bs))
 
 	/*
 		addr := []uint8{0}
@@ -647,7 +657,7 @@ func user_entrypoint(args_len uint32) uint32 {
 		tx_ink_price()
 		tx_origin(&addr[0])
 	*/
-	return 0
+	return testReturn()
 }
 
 func main() {
