@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"example.com/lib"
+	"github.com/0xys/asgo/lib"
 	"github.com/spf13/cobra"
 )
 
