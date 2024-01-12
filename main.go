@@ -664,8 +664,19 @@ func testCall() uint32 {
 	addr := AddressFromBytes(cd[1:21])
 	LogUInt8(cd[0], 0)
 	LogAddress(addr, 0)
-
+	defaultKey := 0
 	switch cd[0] {
+	case StoreMarker:
+		v := FromBytes(cd[1:])
+		LogU256(v)
+		SStore(FromUInt64(uint64(defaultKey)), v)
+	case LoadMarker:
+		val := SLoad(FromUInt64(uint64(defaultKey)))
+		SetReturnU256(val)
+	case Load2Marker:
+		val := SLoad(FromUInt64(uint64(defaultKey)))
+		LogU256(val)
+		SetReturnU256(val)
 	case CallMarker:
 		res, err := addr.Call(WithCalldata(cd[21:]))
 		if err != nil {
