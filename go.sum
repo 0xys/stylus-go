@@ -1,3 +1,5 @@
+github.com/0xys/stylus-go/sdk v0.0.0-20240113112928-784bcf7cf8b0 h1:LUOOZe9J2JqDzsyr9GhWwoSoLhNvk16FuLMwcPr4/L4=
+github.com/0xys/stylus-go/sdk v0.0.0-20240113112928-784bcf7cf8b0/go.mod h1:2HEGFCu7HtS66C4TO6439sRt0VlgAB0DfxZjL03irGo=
 github.com/cpuguy83/go-md2man/v2 v2.0.3/go.mod h1:tgQtvFlXSQOSOSIRvRPT7W67SCa46tRHOmNcaadrF8o=
 github.com/dave/jennifer v1.7.0 h1:uRbSBH9UTS64yXbh4FrMHfgfY762RD+C7bUPKODpSJE=
 github.com/dave/jennifer v1.7.0/go.mod h1:nXbxhEmQfOZhWml3D1cDK5M1FLnMSozpbFN/m3RmGZc=
