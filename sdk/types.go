@@ -136,6 +136,9 @@ func (a Address) CodeHash() Bytes {
 	account_codehash(&a[0], &hash[0])
 	return hash
 }
+func (a Address) Equals(b Address) bool {
+	return a == b
+}
 
 func ContractAddress() Address {
 	ret := [AddressLen]uint8{0}

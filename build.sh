@@ -71,6 +71,8 @@ main() {
         deploy $arg
         return
     fi
+
+    echo "specify command type. Usage $0 <build|check|deploy>"
 }
 
 main $1 $2
