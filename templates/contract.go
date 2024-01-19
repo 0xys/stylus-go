@@ -1,4 +1,4 @@
-package template
+package main
 
 import (
 	"github.com/0xys/stylus-go/sdk"
@@ -35,6 +35,14 @@ func (c *FooContract) SayHi() error {
 
 // abi:  transfer(address,uint256)
 func (c *FooContract) Transfer(to sdk.Address, v sdk.U256) error {
+	if c.owner != sdk.MsgSender() {
+		return sdk.EvmError("not owner")
+	}
+	res, err := to.Call(sdk.WithMaxGas(), sdk.WithValue(sdk.FromUInt64(123)))
+	if err != nil {
+		return err
+	}
+	sdk.LogRawN(res, 0)
 	return nil
 }
 
@@ -49,6 +57,6 @@ func (c *FooContract) Balance() (sdk.U256, error) {
 }
 
 // abi: transferFrom(address,address,uint256) returns (bool)
-func (c *FooContract) TransferFrom(from, to sdk.Address, v sdk.U256) (bool, error) {
-	return false, nil
+func (c *FooContract) TransferFrom(from, to sdk.Address, v sdk.U256) (sdk.U256, error) {
+	return sdk.U256([4]uint64{0}), nil
 }

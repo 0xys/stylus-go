@@ -10,6 +10,9 @@ import (
 	"reflect"
 	"strings"
 
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
+
 	"golang.org/x/crypto/sha3"
 )
 
@@ -200,9 +203,17 @@ func parseFunctions(cont *Contract, f *ast.File) error {
 			}
 
 			for _, param := range d.Type.Params.List {
+				types := fmt.Sprintf("%s", param.Type)
+				if tt, ok := param.Type.(*ast.SelectorExpr); ok {
+					types = cases.Title(language.Und).String(tt.Sel.String())
+					types = tt.Sel.String()
+				} else {
+					types = cases.Title(language.Und).String(types)
+				}
+
 				f.Params = append(f.Params, &Variable{
 					Name: param.Names[0].String(),
-					Type: fmt.Sprintf("%s", param.Type),
+					Type: types,
 				})
 			}
 			if d.Type.Results != nil {
