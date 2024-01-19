@@ -87,6 +87,11 @@ func (z *U256) Word() Word {
 	return dst
 }
 
+func (z *U256) EncodeToBytes() Bytes {
+	a := z.Word()
+	return a[:]
+}
+
 type Bytes []uint8
 
 func (b Bytes) String() string {
