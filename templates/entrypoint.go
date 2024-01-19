@@ -24,6 +24,7 @@ func user_entrypoint(args_len uint32) uint32 {
 		err := cont.SayHi()
 		if err != nil {
 			sdk.SetReturnString(err.Error())
+			return 0
 		}
 	case uint32(0xa9059cbb):
 		if !sdk.MsgValue().IsZero() {
@@ -42,6 +43,7 @@ func user_entrypoint(args_len uint32) uint32 {
 		err = cont.Transfer(param0, param1)
 		if err != nil {
 			sdk.SetReturnString(err.Error())
+			return 0
 		}
 	case uint32(0x5cdf6ad2):
 		param0, err := sdk.DecodeUint64(cd[4:36])
@@ -52,6 +54,7 @@ func user_entrypoint(args_len uint32) uint32 {
 		err = cont.Receive(param0)
 		if err != nil {
 			sdk.SetReturnString(err.Error())
+			return 0
 		}
 	case uint32(0xb69ef8a8):
 		if !sdk.MsgValue().IsZero() {

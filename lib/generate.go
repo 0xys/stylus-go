@@ -10,7 +10,10 @@ import (
 const sdkPath = "github.com/0xys/stylus-go/sdk"
 const sdkAlias = "sdk"
 
-var FailureCode = Lit(0)
+var (
+	FailureCode = Lit(0)
+	SuccessCode = Lit(0)
+)
 
 func GenContract(cont *Contract, out *os.File) error {
 	file := NewFile("main")
@@ -50,7 +53,7 @@ func GenContract(cont *Contract, out *os.File) error {
 				op = ":="
 			}
 			callFuncCodes = append(callFuncCodes, Err().Op(op).Id("cont").Dot(f.Name).Call(params...))
-			callFuncCodes = append(callFuncCodes, If(Err().Op("!=").Nil()).Block(Qual(sdkPath, "SetReturnString").Call(Id("err").Dot("Error").Call())))
+			callFuncCodes = append(callFuncCodes, If(Err().Op("!=").Nil()).Block(Qual(sdkPath, "SetReturnString").Call(Id("err").Dot("Error").Call()), Return(FailureCode)))
 		}
 
 		c := Case(Lit(sel)).Block(
@@ -73,7 +76,7 @@ func GenContract(cont *Contract, out *os.File) error {
 		Switch(Id("sel")).Block(
 			cases...,
 		),
-		Return(Lit(0)),
+		Return(SuccessCode),
 	)
 
 	file.Comment("dummy main is needed")
