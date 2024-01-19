@@ -4,7 +4,7 @@ import "math/bits"
 
 type Word [32]uint8
 
-func Zero() Word {
+func ZeroWord() Word {
 	return [32]uint8{0}
 }
 
@@ -13,6 +13,8 @@ type U256 [4]uint64
 func NewU256() U256 {
 	return [4]uint64{0, 0, 0, 0}
 }
+
+var Zero = U256([4]uint64{0, 0, 0, 0})
 
 func FromUInt64(v uint64) U256 {
 	return [4]uint64{v, 0, 0, 0}
@@ -61,11 +63,11 @@ func FromBytes(b Bytes) U256 {
 	return ret
 }
 
-func (z *U256) IsZero() bool {
+func (z U256) IsZero() bool {
 	return z[0] == uint64(0) && z[1] == uint64(0) && z[2] == uint64(0) && z[3] == uint64(0)
 }
 
-func (z *U256) Add(x, y *U256) *U256 {
+func (z U256) Add(x, y *U256) U256 {
 	var carry uint64
 	z[0], carry = bits.Add64(x[0], y[0], 0)
 	z[1], carry = bits.Add64(x[1], y[1], carry)
@@ -74,7 +76,7 @@ func (z *U256) Add(x, y *U256) *U256 {
 	return z
 }
 
-func (z *U256) Word() Word {
+func (z U256) Word() Word {
 	dst := [32]uint8{0}
 	b1 := uint64ToBytes(z[0])
 	b2 := uint64ToBytes(z[1])
@@ -87,7 +89,7 @@ func (z *U256) Word() Word {
 	return dst
 }
 
-func (z *U256) Bytes() Bytes {
+func (z U256) Bytes() Bytes {
 	a := z.Word()
 	return a[:]
 }
@@ -194,7 +196,7 @@ func WithMaxGas() func(*callOpt) {
 }
 
 func (a Address) Call(opts ...func(*callOpt)) (Bytes, error) {
-	zero := Zero()
+	zero := ZeroWord()
 	opt := &callOpt{
 		gas:   uintMax,
 		value: zero[:], // value must be filled with zeros. TODO: optimize
@@ -215,7 +217,7 @@ func (a Address) Call(opts ...func(*callOpt)) (Bytes, error) {
 }
 
 func (a Address) StaticCall(opts ...func(*callOpt)) (Bytes, error) {
-	zero := Zero()
+	zero := ZeroWord()
 	opt := &callOpt{
 		gas:   uintMax,
 		value: zero[:],
@@ -236,7 +238,7 @@ func (a Address) StaticCall(opts ...func(*callOpt)) (Bytes, error) {
 }
 
 func (a Address) DelegateCall(opts ...func(*callOpt)) (Bytes, error) {
-	zero := Zero()
+	zero := ZeroWord()
 	opt := &callOpt{
 		gas:   uintMax,
 		value: zero[:],

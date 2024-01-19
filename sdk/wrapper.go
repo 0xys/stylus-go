@@ -1,11 +1,5 @@
 package sdk
 
-func Init(argLen uint32) {
-	calldataLen = argLen
-	returnStatus = 0
-	memory_grow(0) // memory grow must be included in wasm binary
-}
-
 func Keccak256(data Bytes) Word {
 	ret := [32]uint8{0}
 	native_keccak256(&data[0], uint32(len(data)), &ret[0])
