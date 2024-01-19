@@ -14,6 +14,12 @@ rm_wasi() {
     rm tmp.wat
 }
 
+gen() {
+    local outfile=$1
+    local mainfile=$2
+    go run cmd/main.go --out $outfile $mainfile
+}
+
 build() {
     local mainfile=$1
     tinygo build -o outputs/mainh_tmp1.wasm -gc leaking -scheduler none -target ./configs/stylus.json --no-debug $mainfile
@@ -38,7 +44,22 @@ deploy() {
 main() {
     local cmd=$1
     if [ -z "$cmd" ]; then
-        echo "specify command type. Usage $0 <build|check|deploy>"
+        echo "specify command type. Usage $0 <gen|build|check|deploy>"
+        return
+    fi
+
+    if [ "$cmd" = "gen" ]; then
+        arg1=$2
+        arg2=$3
+        if [ -z "$arg1" ]; then
+            echo "specify the output file path. Usage $0 gen <out_path> <contract_path>"
+            return
+        fi
+        if [ -z "$arg2" ]; then
+            echo "specify the contract file path. Usage $0 gen <out_path> <contract_path>"
+            return
+        fi
+        gen $arg1 $arg2
         return
     fi
 
@@ -75,4 +96,4 @@ main() {
     echo "specify command type. Usage $0 <build|check|deploy>"
 }
 
-main $1 $2
+main $1 $2 $3
