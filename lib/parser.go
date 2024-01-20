@@ -245,7 +245,7 @@ func getFuncMetadata(d *ast.FuncDecl) (*FuncMetadata, error) {
 	return NewFuncMetadata(cmmt)
 }
 
-func ProcessFile(filepath string) (*Contract, error) {
+func ProcessFile(filepath string, verbose bool) (*Contract, error) {
 	fs := token.NewFileSet()
 	f, err := parser.ParseFile(fs, filepath, nil, parser.ParseComments)
 	if err != nil {
@@ -262,14 +262,16 @@ func ProcessFile(filepath string) (*Contract, error) {
 		return nil, err
 	}
 
-	/*fmt.Println(cont.Name)
-	for _, m := range cont.Functions {
-		m.Print()
-	}*/
+	if verbose {
+		fmt.Println(cont.Name)
+		for _, m := range cont.Functions {
+			m.Print()
+		}
+	}
 	return cont, nil
 }
 
 func realMain() error {
-	_, err := ProcessFile("templates/main.go")
+	_, err := ProcessFile("templates/main.go", true)
 	return err
 }

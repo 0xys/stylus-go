@@ -9,8 +9,8 @@ import (
 )
 
 const (
-	KeepTemporaryWork      = "work"
-	KeepTemporaryWorkShort = "w"
+	ShowTemporaryWork      = "work"
+	ShowTemporaryWorkShort = "w"
 	OutputPath             = "out"
 	OutputPathShort        = "o"
 )
@@ -19,7 +19,7 @@ var rootCmd = &cobra.Command{
 	Use:  "asgo [flags] filepath",
 	Long: "Arbitrum Stylus Go: go smart contract generator for Arbitrum Stylus",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		t, err := cmd.Flags().GetBool(KeepTemporaryWork)
+		t, err := cmd.Flags().GetBool(ShowTemporaryWork)
 		if err != nil {
 			return err
 		}
@@ -39,12 +39,11 @@ var rootCmd = &cobra.Command{
 			out.Close()
 		}()
 
-		cont, err := lib.ProcessFile(args[0])
+		cont, err := lib.ProcessFile(args[0], t)
 		if err != nil {
 			return err
 		}
 
-		fmt.Printf("toggle: %t\n", t)
 		err = lib.GenContract(cont, out)
 		if err != nil {
 			return err
@@ -62,6 +61,6 @@ func main() {
 }
 
 func init() {
-	rootCmd.Flags().BoolP(KeepTemporaryWork, KeepTemporaryWorkShort, false, "print the name of the temporary work directory and do not delete it when exiting")
+	rootCmd.Flags().BoolP(ShowTemporaryWork, ShowTemporaryWorkShort, false, "print the name of the temporary work directory and do not delete it when exiting")
 	rootCmd.Flags().StringP(OutputPath, OutputPathShort, "entrypoint.go", "output path of the contract entrypoint")
 }
