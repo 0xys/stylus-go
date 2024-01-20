@@ -114,6 +114,8 @@ const AddressLen = 20
 
 type Address [AddressLen]uint8
 
+var NilAddress = Address([AddressLen]uint8{0})
+
 func AddressFromBytes(bytes Bytes) Address {
 	ret := [AddressLen]uint8{0}
 	rightMostIndex := min(AddressLen, len(bytes)) - 1
