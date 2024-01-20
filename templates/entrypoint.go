@@ -30,12 +30,12 @@ func user_entrypoint(args_len uint32) uint32 {
 		if !sdk.MsgValue().IsZero() {
 			return 0
 		}
-		param0, err := sdk.DecodeAddress(cd[4:36])
+		param0, err := sdk.DecodeAddress(cd[4:])
 		if err != nil {
 			sdk.SetReturnString(err.Error())
 			return 0
 		}
-		param1, err := sdk.DecodeU256(cd[36:68])
+		param1, err := sdk.DecodeU256(cd[36:])
 		if err != nil {
 			sdk.SetReturnString(err.Error())
 			return 0
@@ -46,7 +46,7 @@ func user_entrypoint(args_len uint32) uint32 {
 			return 0
 		}
 	case uint32(0x5cdf6ad2):
-		param0, err := sdk.DecodeUint64(cd[4:36])
+		param0, err := sdk.DecodeUint64(cd[4:])
 		if err != nil {
 			sdk.SetReturnString(err.Error())
 			return 0
@@ -71,12 +71,12 @@ func user_entrypoint(args_len uint32) uint32 {
 		if !sdk.MsgValue().IsZero() {
 			return 0
 		}
-		param0, err := sdk.DecodeAddress(cd[4:36])
+		param0, err := sdk.DecodeAddress(cd[4:])
 		if err != nil {
 			sdk.SetReturnString(err.Error())
 			return 0
 		}
-		param1, err := sdk.DecodeU256(cd[36:68])
+		param1, err := sdk.DecodeU256(cd[36:])
 		if err != nil {
 			sdk.SetReturnString(err.Error())
 			return 0

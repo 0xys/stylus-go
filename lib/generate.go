@@ -38,7 +38,7 @@ func GenContract(cont *Contract, out *os.File) error {
 		params := make([]Code, len(f.Params))
 		for j, pin := range f.Params {
 			id := Id(fmt.Sprintf("param%d", j))
-			callFuncCodes = append(callFuncCodes, List(id, Err()).Op(":=").Qual(sdkPath, fmt.Sprintf("Decode%s", pin.Type)).Call(Id("cd").Index(Lit(4+j*32), Lit(4+(j+1)*32))))
+			callFuncCodes = append(callFuncCodes, List(id, Err()).Op(":=").Qual(sdkPath, fmt.Sprintf("Decode%s", pin.Type)).Call(Id("cd").Index(Lit(4+j*32), Empty())))
 			callFuncCodes = append(callFuncCodes, If(Err().Op("!=").Nil()).Block(Qual(sdkPath, "SetReturnString").Call(Id("err").Dot("Error").Call()), Return(FailureCode)))
 			params = append(params, id)
 		}
