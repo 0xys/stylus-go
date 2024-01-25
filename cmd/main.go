@@ -9,6 +9,8 @@ import (
 )
 
 const (
+	ModuleName             = "module"
+	ModuleNameShort        = "m"
 	ShowTemporaryWork      = "work"
 	ShowTemporaryWorkShort = "w"
 	OutputPath             = "out"
@@ -27,6 +29,11 @@ var rootCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
+		modID, err := cmd.Flags().GetString(ModuleName)
+		if err != nil {
+			return err
+		}
+		fmt.Println(modID)
 
 		if len(args) > 1 {
 			return fmt.Errorf("maximum of one argument is accepted")
@@ -44,7 +51,7 @@ var rootCmd = &cobra.Command{
 			return err
 		}
 
-		err = lib.GenContract(cont, out)
+		err = lib.GenContract(modID, cont, out)
 		if err != nil {
 			return err
 		}
@@ -62,5 +69,6 @@ func main() {
 
 func init() {
 	rootCmd.Flags().BoolP(ShowTemporaryWork, ShowTemporaryWorkShort, false, "print the name of the temporary work directory and do not delete it when exiting")
+	rootCmd.Flags().StringP(ModuleName, ModuleNameShort, "example.com", "module name of the contract module")
 	rootCmd.Flags().StringP(OutputPath, OutputPathShort, "entrypoint.go", "output path of the contract entrypoint")
 }

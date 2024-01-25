@@ -15,14 +15,17 @@ rm_wasi() {
 }
 
 gen() {
-    local outfile=$1
-    local mainfile=$2
-    go run cmd/main.go --out $outfile $mainfile
+    local contractroot=$1
+    local mod=$2
+    go run cmd/main.go --out $contractroot/entrypoint.go --module $mod $contractroot/contract/contract.go
 }
 
 build() {
-    local mainfile=$1
-    tinygo build -o outputs/mainh_tmp1.wasm -gc leaking -scheduler none -target ./configs/stylus.json --no-debug $mainfile
+    local contractroot=$1
+    cd $contractroot
+    sed -i -e 's,// export user_entrypoint,//export user_entrypoint,' ./entrypoint.go
+    tinygo build -o ../outputs/mainh_tmp1.wasm -gc leaking -scheduler none -target ../configs/stylus.json --no-debug entrypoint.go
+    cd ..
 	$WABT_PATH/bin/wasm2wat -o outputs/mainh_tmp2.wat outputs/mainh_tmp1.wasm
 	rm_wasi
 	$WABT_PATH/bin/wat2wasm -o bin/mainh.wasm outputs/mainh_tmp3.wat
@@ -52,11 +55,11 @@ main() {
         arg1=$2
         arg2=$3
         if [ -z "$arg1" ]; then
-            echo "specify the output file path. Usage $0 gen <out_path> <contract_path>"
+            echo "specify the output file path. Usage $0 gen <contract_root_path> <module_name>"
             return
         fi
         if [ -z "$arg2" ]; then
-            echo "specify the contract file path. Usage $0 gen <out_path> <contract_path>"
+            echo "specify the contract file path. Usage $0 gen <contract_root_path> <module_name>"
             return
         fi
         gen $arg1 $arg2
@@ -66,7 +69,7 @@ main() {
     if [ "$cmd" = "build" ]; then
         arg=$2
         if [ -z "$arg" ]; then
-            echo "specify the go program being built. Usage $0 build <path_to_go_file>"
+            echo "specify the go module path being built. Usage $0 build <contract_module_root_path>"
             return
         fi
         build $arg

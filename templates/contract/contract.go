@@ -1,6 +1,8 @@
-package main
+package contract
 
 import (
+	"crypto/sha256"
+
 	"github.com/0xys/stylus-go/sdk"
 )
 
@@ -59,5 +61,8 @@ func (c *FooContract) Balance() (sdk.U256, error) {
 
 // abi: transferFrom(address,address,uint256) returns (bool)
 func (c *FooContract) TransferFrom(from sdk.Address, to sdk.Address, v sdk.U256) (sdk.U256, error) {
-	return sdk.U256([4]uint64{0}), nil
+	hasher := sha256.New()
+	hasher.Write(from.Bytes())
+	res := hasher.Sum(nil)
+	return sdk.FromBytes(res), nil
 }
