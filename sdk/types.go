@@ -259,3 +259,9 @@ func (a Address) DelegateCall(opts ...func(*callOpt)) (Bytes, error) {
 	}
 	return ret, nil
 }
+
+type String string
+
+func (s String) Bytes() Bytes {
+	return []byte(s)
+}
