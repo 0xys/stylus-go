@@ -22,20 +22,21 @@ func privateSomeFunc(aaa int, b uint64) uint64 {
 // contract
 type FooContract struct {
 	value    int
-	name     string
+	name     sdk.String
 	owner    sdk.Address
 	balances map[sdk.Address]sdk.U256
 }
 
-// abi: sayHi() pure
-func (c *FooContract) SayHi() error {
-	sdk.Log("hi")
-	return nil
+// abi: sayName() returns (string) view
+func (c *FooContract) SayName() (sdk.String, error) {
+	return c.name, nil
 }
 
 // abi:  transfer(address,uint256)
 func (c *FooContract) Transfer(to sdk.Address, v sdk.U256) error {
-	if c.owner != sdk.MsgSender() {
+	ownerS := sdk.SLoad(sdk.FromUInt64(3))
+	owner := sdk.AddressFromBytes(ownerS.Bytes())
+	if owner != sdk.MsgSender() {
 		return sdk.EvmError("not owner")
 	}
 	res, err := to.Call(sdk.WithMaxGas(), sdk.WithValue(sdk.FromUInt64(123)))
@@ -57,6 +58,6 @@ func (c *FooContract) Balance() (sdk.U256, error) {
 }
 
 // abi: transferFrom(address,address,uint256) returns (bool)
-func (c *FooContract) TransferFrom(from, to sdk.Address, v sdk.U256) (sdk.U256, error) {
+func (c *FooContract) TransferFrom(from sdk.Address, to sdk.Address, v sdk.U256) (sdk.U256, error) {
 	return sdk.U256([4]uint64{0}), nil
 }

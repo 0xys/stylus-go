@@ -16,16 +16,17 @@ func user_entrypoint(args_len uint32) uint32 {
 	}
 	sel := sdk.ToSelector(cd[:4])
 	switch sel {
-	case uint32(0xc49c36c):
+	case uint32(0x456e64cb):
 		if !sdk.MsgValue().IsZero() {
 			return 0
 		}
-		sdk.SetPure()
-		err := cont.SayHi()
+		sdk.SetView()
+		ret, err := cont.SayName()
 		if err != nil {
 			sdk.SetReturnString(err.Error())
 			return 0
 		}
+		sdk.SetReturnBytes(ret.Bytes())
 	case uint32(0xa9059cbb):
 		if !sdk.MsgValue().IsZero() {
 			return 0
@@ -76,12 +77,17 @@ func user_entrypoint(args_len uint32) uint32 {
 			sdk.SetReturnString(err.Error())
 			return 0
 		}
-		param1, err := sdk.DecodeU256(cd[36:])
+		param1, err := sdk.DecodeAddress(cd[36:])
 		if err != nil {
 			sdk.SetReturnString(err.Error())
 			return 0
 		}
-		ret, err := cont.TransferFrom(param0, param1)
+		param2, err := sdk.DecodeU256(cd[68:])
+		if err != nil {
+			sdk.SetReturnString(err.Error())
+			return 0
+		}
+		ret, err := cont.TransferFrom(param0, param1, param2)
 		if err != nil {
 			sdk.SetReturnString(err.Error())
 			return 0
