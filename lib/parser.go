@@ -272,6 +272,6 @@ func ProcessFile(filepath string, verbose bool) (*Contract, error) {
 }
 
 func realMain() error {
-	_, err := ProcessFile("templates/main.go", true)
+	_, err := ProcessFile("example/main.go", true)
 	return err
 }

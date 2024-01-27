@@ -1,6 +1,7 @@
 # example
 ```sh
-./build.sh build ./templates
+./build.sh gen
+./build.sh build ./example
 ./build.sh check ./bin/mainh.wasm
 ./build.sh deploy ./bin/mainh.wasm
 ```

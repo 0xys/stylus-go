@@ -7,7 +7,7 @@ import (
 	sdk "github.com/0xys/stylus-go/sdk"
 )
 
-//export user_entrypoint
+// export user_entrypoint
 func user_entrypoint(args_len uint32) uint32 {
 	sdk.Init(args_len)
 	defer sdk.Flush()
