@@ -2,14 +2,17 @@
 
 package main
 
-import sdk "github.com/0xys/stylus-go/sdk"
+import (
+	contract "example.com/foo/contract"
+	sdk "github.com/0xys/stylus-go/sdk"
+)
 
-// export user_entrypoint
+//export user_entrypoint
 func user_entrypoint(args_len uint32) uint32 {
 	sdk.Init(args_len)
 	defer sdk.Flush()
 
-	cont := &FooContract{}
+	cont := &contract.FooContract{}
 	cd := sdk.GetCalldata()
 	if len(cd) < 4 {
 		return 0
